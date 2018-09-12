@@ -1,5 +1,6 @@
 import * as ArgumentParser from 'argparse'
 import * as Child from 'child_process'
+import * as TS from 'typescript'
 import * as FSE from 'fs-extra'
 import * as Path from 'path'
 import * as FS from 'fs'
@@ -64,6 +65,7 @@ FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJs
 console.log(modTempDir)
 
 // Generate the module
+const contractsTempDir = Path.join(modTempDir, 'contracts')
 const templatePath = Path.join(root, 'templates')
 const templateArg = Path.join(templatePath, 'contract.handlebars')
 const partialArg = Path.join(
@@ -71,20 +73,46 @@ const partialArg = Path.join(
 const child = Child.spawnSync(
     'abi-gen', [
         '--abis', Path.join(abiTempDir, '*.json'),
-        // '--out', args.out,
-        '--out', Path.join(modTempDir, 'contracts'),
+        '--out', contractsTempDir,
         '--partials', partialArg,
         '--template', templateArg,
     ],
-    // @ts-ignore
     {
         // @ts-ignore
         stdio: 'inherit'
     })
 
-// Move result to output
-if (child.status == 0) {
-    FSE.moveSync(modTempDir, args.out)
+
+if (child.status != 0) {
+    process.exit(child.status)
 }
 
-process.exit(child.status)
+// Generate top-level index.ts re-exporting all contracts
+const exportStrings: string[] = []
+FS.readdirSync(contractsTempDir).forEach(filename => {
+    if (!(/\.ts$/).test(filename)) {
+        return
+    }
+
+    const contractFile = Path.join(contractsTempDir, filename)
+    const sourceFile = TS.createSourceFile(
+        contractFile,
+        FS.readFileSync(contractFile).toString(),
+        TS.ScriptTarget.ES2015,
+        true, // setParentNodes
+    )
+
+    TS.forEachChild(sourceFile, node => {
+        switch (node.kind) {
+            case TS.SyntaxKind.ClassDeclaration:
+                // @ts-ignore
+                const className = node.name.escapedText
+                exportStrings.push(`export {${className}} from "${filename}"`)
+                break
+        }
+    })
+})
+FS.writeFileSync(Path.join(modTempDir, 'index.ts'), exportStrings.join('\n') + '\n')
+
+// Move result to output
+FSE.moveSync(modTempDir, args.out)
