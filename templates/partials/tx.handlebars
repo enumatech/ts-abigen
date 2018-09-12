@@ -1,5 +1,5 @@
 public {{this.tsName}} = {
-    async sendTransactionAsync(
+    async sendTransaction(
     {{> typed_params inputs=inputs}}
     {{#this.payable}}
         txData: Partial<TxDataPayable> = {},
@@ -22,7 +22,7 @@ public {{this.tsName}} = {
                 data: encodedData,
             },
             self._web3Wrapper.getContractDefaults(),
-            self.{{this.tsName}}.estimateGasAsync.bind(
+            self.{{this.tsName}}.estimateGas.bind(
                 self,
                 {{> params inputs=inputs}}
             ),
@@ -30,7 +30,7 @@ public {{this.tsName}} = {
         const txHash = await self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
         return txHash;
     },
-    async estimateGasAsync(
+    async estimateGas(
     {{> typed_params inputs=inputs}}
         txData: Partial<TxData> = {},
     ): Promise<number> {

@@ -1,13 +1,57 @@
 dependencies:
   '@0xproject/abi-gen': github.com/enumatech/0x-abi-gen/b2a6d318bbe9e8583796516808574da85c1ca946
+  '@0xproject/base-contract': 2.0.2
+  '@0xproject/typescript-typings': 2.0.0
+  '@0xproject/utils': 1.0.8
+  '@0xproject/web3-wrapper': 2.0.2
+  '@types/lodash': 4.14.116
   argparse: 1.0.10
+  ethereum-types: 1.0.6
+  ethers: 3.0.27
   fs-extra: 7.0.0
+  lodash: 4.17.10
   typescript: 3.0.3
 devDependencies:
   '@types/argparse': 1.0.34
   '@types/fs-extra': 5.0.4
   '@types/node': 10.9.4
 packages:
+  /@0xproject/assert/1.0.8:
+    dependencies:
+      '@0xproject/json-schemas': 1.0.1
+      '@0xproject/typescript-typings': 2.0.0
+      '@0xproject/utils': 1.0.8
+      lodash: 4.17.10
+      valid-url: 1.0.9
+    dev: false
+    engines:
+      node: '>=6.12'
+    resolution:
+      integrity: sha512-MsBTLsMpv8LRU6RCtlHicCuJisl3Quj4SheRzacmQk6c92F0HwgxZ8gGr4HS+MVQ8t9+DI0ud8GtVvU4pgpPcA==
+  /@0xproject/base-contract/2.0.2:
+    dependencies:
+      '@0xproject/typescript-typings': 2.0.0
+      '@0xproject/utils': 1.0.8
+      '@0xproject/web3-wrapper': 2.0.2
+      ethereum-types: 1.0.6
+      ethers: 3.0.22
+      lodash: 4.17.10
+    dev: false
+    engines:
+      node: '>=6.12'
+    resolution:
+      integrity: sha512-SVkHBSzkN5lMmoccFGzRn758S1XsBESDpp+OjF5Nv1nrGHaEHmuTAmhWvtavMQHGhgiZr48nqHolPWtZW2C+SA==
+  /@0xproject/json-schemas/1.0.1:
+    dependencies:
+      '@0xproject/typescript-typings': 2.0.0
+      '@types/node': 8.10.29
+      jsonschema: 1.2.4
+      lodash.values: 4.3.0
+    dev: false
+    engines:
+      node: '>=6.12'
+    resolution:
+      integrity: sha512-j9RuxEKefT94Ak07F5cBzZsN0JxqAkgi1IVFXIRWe0EzhYiueGI97FgSwKLAJuzjoWjK8SE4GVDy/QQ9cNiKpA==
   /@0xproject/types/1.0.1:
     dependencies:
       '@types/node': 8.10.29
@@ -61,6 +105,21 @@ packages:
       node: '>=6.12'
     resolution:
       integrity: sha512-hhK/8P0ccc3fZeVmDIRgqH3zTBjm24HGZMYhjJI9p8FoS1qaL+eG4iiEI5Ck3YxbMxjG8O3hCSj6mgcmkUvGQg==
+  /@0xproject/web3-wrapper/2.0.2:
+    dependencies:
+      '@0xproject/assert': 1.0.8
+      '@0xproject/json-schemas': 1.0.1
+      '@0xproject/typescript-typings': 2.0.0
+      '@0xproject/utils': 1.0.8
+      ethereum-types: 1.0.6
+      ethereumjs-util: 5.2.0
+      ethers: 3.0.22
+      lodash: 4.17.10
+    dev: false
+    engines:
+      node: '>=6.12'
+    resolution:
+      integrity: sha512-SbHqgaDLmuHp+qqiHQU0J6MvEiTaYQO1OPlGnezZ6VpPgAfSLLxwp/pcY7vqQFZkX19bcXWp8iB2qIG+f73g7Q==
   /@types/argparse/1.0.34:
     dev: true
     resolution:
@@ -371,6 +430,21 @@ packages:
     dev: false
     resolution:
       integrity: sha512-veXsoCdFL3yAdRohQWANA5/sw/btTCxPVmOruMDdzTtQelzRTrkDPN3CN1Y7TG1mQgayWoWkkfS4ks2t21wNqQ==
+  /ethers/3.0.27:
+    dependencies:
+      aes-js: 3.0.0
+      bn.js: 4.11.8
+      elliptic: 6.3.3
+      hash.js: 1.1.5
+      inherits: 2.0.1
+      js-sha3: 0.5.7
+      scrypt-js: 2.0.3
+      setimmediate: 1.0.4
+      uuid: 2.0.1
+      xmlhttprequest: 1.8.0
+    dev: false
+    resolution:
+      integrity: sha512-Ymop12NYKLTejQKv3l4a4vwwZNG+V0D2KmBGuSMa0eEguPJYCouNUoJ/8IiDTwqxKsthoSeCRrcXIz5HJDbHqA==
   /ethjs-util/0.1.6:
     dependencies:
       is-hex-prefixed: 1.0.0
@@ -575,6 +649,10 @@ packages:
       graceful-fs: 4.1.11
     resolution:
       integrity: sha1-h3Gq4HmbZAdrdmQPygWPnBDjPss=
+  /jsonschema/1.2.4:
+    dev: false
+    resolution:
+      integrity: sha512-lz1nOH69GbsVHeVgEdvyavc/33oymY1AZwtePMiMj4HZPMbP5OIKK3zT9INMWjwua/V4Z4yq7wSlBbSG+g4AEw==
   /keccak/1.4.0:
     dependencies:
       bindings: 1.3.0
@@ -604,6 +682,10 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha1-K1aLJl7slExtnA3pw9u7ygNUzY4=
+  /lodash.values/4.3.0:
+    dev: false
+    resolution:
+      integrity: sha1-o6bCsOvsxcLLocF+bmIP6BtT00c=
   /lodash/4.17.10:
     dev: false
     resolution:
@@ -992,6 +1074,10 @@ packages:
     dev: false
     resolution:
       integrity: sha1-wqMN7bPlNdcsz4LjQ5QaULqFM6w=
+  /valid-url/1.0.9:
+    dev: false
+    resolution:
+      integrity: sha1-HBRHm0DxOXp1eC8RXkCGRHQzogA=
   /whatwg-fetch/3.0.0:
     dev: false
     resolution:
@@ -1088,13 +1174,21 @@ packages:
       tarball: 'https://codeload.github.com/enumatech/0x-abi-gen/tar.gz/b2a6d318bbe9e8583796516808574da85c1ca946'
     version: 1.0.7
 registry: 'https://registry.npmjs.org/'
-shrinkwrapMinorVersion: 8
+shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
   '@0xproject/abi-gen': 'github:enumatech/0x-abi-gen'
+  '@0xproject/base-contract': ^2.0.2
+  '@0xproject/typescript-typings': ^2.0.0
+  '@0xproject/utils': ^1.0.8
+  '@0xproject/web3-wrapper': ^2.0.2
   '@types/argparse': ^1.0.34
   '@types/fs-extra': ^5.0.4
+  '@types/lodash': ^4.14.116
   '@types/node': ^10.9.4
   argparse: ^1.0.10
+  ethereum-types: ^1.0.6
+  ethers: ^3.0.27
   fs-extra: ^7.0.0
+  lodash: ^4.17.10
   typescript: ^3.0.3

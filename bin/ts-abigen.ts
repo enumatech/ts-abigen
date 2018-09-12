@@ -86,27 +86,28 @@ require('@0xproject/abi-gen')
 // Generate top-level index.ts re-exporting all contracts
 const exportStrings: string[] = []
 FS.readdirSync(contractsTempDir).forEach(filename => {
-    if (!(/\.ts$/).test(filename)) {
-        return
+  if (!(/\.ts$/).test(filename)) {
+    return
+  }
+
+  const contractFile = Path.join(contractsTempDir, filename)
+  const sourceFile = TS.createSourceFile(
+    contractFile,
+    FS.readFileSync(contractFile).toString(),
+    TS.ScriptTarget.ES2015,
+    true, // setParentNodes
+  )
+
+  TS.forEachChild(sourceFile, node => {
+    switch (node.kind) {
+    case TS.SyntaxKind.ClassDeclaration:
+      // @ts-ignore
+      const className = node.name.escapedText
+      const importFrom = ['./contracts', filename.replace(/\.ts/, '')].join('/')
+      exportStrings.push(`export {${className}} from "${importFrom}"`)
+      break
     }
-
-    const contractFile = Path.join(contractsTempDir, filename)
-    const sourceFile = TS.createSourceFile(
-        contractFile,
-        FS.readFileSync(contractFile).toString(),
-        TS.ScriptTarget.ES2015,
-        true, // setParentNodes
-    )
-
-    TS.forEachChild(sourceFile, node => {
-        switch (node.kind) {
-            case TS.SyntaxKind.ClassDeclaration:
-                // @ts-ignore
-                const className = node.name.escapedText
-                exportStrings.push(`export {${className}} from "${filename}"`)
-                break
-        }
-    })
+  })
 })
 FS.writeFileSync(Path.join(modTempDir, 'index.ts'), exportStrings.join('\n') + '\n')
 
