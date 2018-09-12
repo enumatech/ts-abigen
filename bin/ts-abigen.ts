@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import * as ArgumentParser from 'argparse'
 import * as Child from 'child_process'
 import * as TS from 'typescript'
@@ -62,7 +63,6 @@ const packageJson = JSON.parse(
         Path.join(modTempDir, 'package.json')).toString())
 packageJson['name'] = args.name
 FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJson))
-console.log(modTempDir)
 
 // Generate the module
 const contractsTempDir = Path.join(modTempDir, 'contracts')
@@ -116,3 +116,6 @@ FS.writeFileSync(Path.join(modTempDir, 'index.ts'), exportStrings.join('\n') + '
 
 // Move result to output
 FSE.moveSync(modTempDir, args.out)
+
+const finalDestination = FS.realpathSync(args.out)
+console.log(`\nModule path: ${finalDestination}`)

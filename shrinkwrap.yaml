@@ -1,11 +1,11 @@
 dependencies:
   '@0xproject/abi-gen': github.com/enumatech/0x-abi-gen/b2a6d318bbe9e8583796516808574da85c1ca946
-  '@types/argparse': 1.0.34
-  '@types/fs-extra': 5.0.4
-  '@types/node': 10.9.4
   argparse: 1.0.10
   fs-extra: 7.0.0
 devDependencies:
+  '@types/argparse': 1.0.34
+  '@types/fs-extra': 5.0.4
+  '@types/node': 10.9.4
   typescript: 3.0.3
 packages:
   /@0xproject/types/1.0.1-rc.6:
@@ -50,7 +50,7 @@ packages:
     resolution:
       integrity: sha512-N57ip25YzvAq+I/zbRYrTsa46SPoYzAy+75xN0eLo2VJT8jmPnvzYL6WncwfqkggxP1KMg0El7cbuFcFA7QfCQ==
   /@types/argparse/1.0.34:
-    dev: false
+    dev: true
     resolution:
       integrity: sha512-hY3S3Ow7k9ieBC3uEaiAluDrnPnAYsHZckOHr+nMWTgdFXa4Q6BqH5512y8mARLT8jExHhrpAiJoBdInCGd2PA==
   /@types/bn.js/4.11.1:
@@ -62,7 +62,7 @@ packages:
   /@types/fs-extra/5.0.4:
     dependencies:
       '@types/node': 10.9.4
-    dev: false
+    dev: true
     resolution:
       integrity: sha512-DsknoBvD8s+RFfSGjmERJ7ZOP1HI0UZRA3FSI+Zakhrc/Gy26YQsLI+m5V5DHxroHRJqCDLKJp7Hixn8zyaF7g==
   /@types/lodash/4.14.116:
@@ -70,7 +70,6 @@ packages:
     resolution:
       integrity: sha512-lRnAtKnxMXcYYXqOiotTmJd74uawNWuPnsnPrrO7HiFuE3npE2iQhfABatbYDyxTNqZNuXzcKGhw37R7RjBFLg==
   /@types/node/10.9.4:
-    dev: false
     resolution:
       integrity: sha512-fCHV45gS+m3hH17zgkgADUSi2RR1Vht6wOZ0jyHP8rjiQra9f+mIcgwPQHllmDocYOstIEbKlxbFDYlgrTPYqw==
   /@types/node/8.10.29:
