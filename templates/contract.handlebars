@@ -42,7 +42,7 @@ export class {{contractName}}Contract extends BaseContract {
     {{> tx contractName=../contractName}}
     {{/this.constant}}
 {{/each}}
-    public static async deployAsync(
+    public static async deploy(
         bytecode: string,
         provider: Provider,
         txDefaults: Partial<TxData>,
@@ -57,14 +57,14 @@ export class {{contractName}}Contract extends BaseContract {
         );
         const txData = ethers.Contract.getDeployTransaction(bytecode, abi, {{> params inputs=ctor.inputs}});
         const web3Wrapper = new Web3Wrapper(provider);
-        const txDataWithDefaults = await BaseContract._applyDefaultsToTxDataAsync(
+        const txDataWithDefaults = await BaseContract._applyDefaultsToTxData(
             txData,
             txDefaults,
-            web3Wrapper.estimateGasAsync.bind(web3Wrapper),
+            web3Wrapper.estimateGas.bind(web3Wrapper),
         );
-        const txHash = await web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+        const txHash = await web3Wrapper.sendTransaction(txDataWithDefaults);
         logUtils.log(`transactionHash: ${txHash}`);
-        const txReceipt = await web3Wrapper.awaitTransactionSuccessAsync(txHash);
+        const txReceipt = await web3Wrapper.awaitTransactionSuccess(txHash);
         logUtils.log(`{{contractName}} successfully deployed at ${txReceipt.contractAddress}`);
         const contractInstance = new {{contractName}}Contract(txReceipt.contractAddress as string, provider, txDefaults);
         contractInstance.constructorArgs = [{{> params inputs=ctor.inputs}}];

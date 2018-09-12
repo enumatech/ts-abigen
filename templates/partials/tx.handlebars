@@ -1,5 +1,5 @@
 public {{this.tsName}} = {
-    async sendTransactionAsync(
+    async sendTransaction(
     {{> typed_params inputs=inputs}}
     {{#this.payable}}
         txData: Partial<TxDataPayable> = {},
@@ -15,22 +15,22 @@ public {{this.tsName}} = {
         const encodedData = self._lookupEthersInterface('{{this.functionSignature}}').functions.{{this.name}}(
             {{> params inputs=inputs}}
         ).data;
-        const txDataWithDefaults = await BaseContract._applyDefaultsToTxDataAsync(
+        const txDataWithDefaults = await BaseContract._applyDefaultsToTxData(
             {
                 to: self.address,
                 ...txData,
                 data: encodedData,
             },
             self._web3Wrapper.getContractDefaults(),
-            self.{{this.tsName}}.estimateGasAsync.bind(
+            self.{{this.tsName}}.estimateGas.bind(
                 self,
                 {{> params inputs=inputs}}
             ),
         );
-        const txHash = await self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
+        const txHash = await self._web3Wrapper.sendTransaction(txDataWithDefaults);
         return txHash;
     },
-    async estimateGasAsync(
+    async estimateGas(
     {{> typed_params inputs=inputs}}
         txData: Partial<TxData> = {},
     ): Promise<number> {
@@ -40,7 +40,7 @@ public {{this.tsName}} = {
         const encodedData = self._lookupEthersInterface('{{this.functionSignature}}').functions.{{this.name}}(
             {{> params inputs=inputs}}
         ).data;
-        const txDataWithDefaults = await BaseContract._applyDefaultsToTxDataAsync(
+        const txDataWithDefaults = await BaseContract._applyDefaultsToTxData(
             {
                 to: self.address,
                 ...txData,
@@ -48,7 +48,7 @@ public {{this.tsName}} = {
             },
             self._web3Wrapper.getContractDefaults(),
         );
-        const gas = await self._web3Wrapper.estimateGasAsync(txDataWithDefaults);
+        const gas = await self._web3Wrapper.estimateGas(txDataWithDefaults);
         return gas;
     },
     getABIEncodedTransactionData(
@@ -62,5 +62,5 @@ public {{this.tsName}} = {
         ).data;
         return abiEncodedTransactionData;
     },
-    {{> callAsync}}
+    {{> call}}
 };

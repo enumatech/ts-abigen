@@ -20,7 +20,7 @@ const contract = new RevokeListContract(
 Promise.resolve()
     .then(async () => {
         const z = '0x0000000000000000000000000000000000000000000000000000000000000000'
-        const result = await contract.sanityCheck.callAsync(z, z)
+        const result = await contract.sanityCheck.call(z, z)
         console.log(result)
     })
     .then(_ => {
