@@ -1088,7 +1088,7 @@ packages:
       tarball: 'https://codeload.github.com/enumatech/0x-abi-gen/tar.gz/b2a6d318bbe9e8583796516808574da85c1ca946'
     version: 1.0.7
 registry: 'https://registry.npmjs.org/'
-shrinkwrapMinorVersion: 9
+shrinkwrapMinorVersion: 8
 shrinkwrapVersion: 3
 specifiers:
   '@0xproject/abi-gen': 'github:enumatech/0x-abi-gen'
