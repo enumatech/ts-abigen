@@ -69,23 +69,19 @@ const contractsTempDir = Path.join(modTempDir, 'contracts')
 const templatePath = Path.join(root, 'templates')
 const templateArg = Path.join(templatePath, 'contract.handlebars')
 const partialArg = Path.join(
-    Path.join(templatePath, 'partials'), '*.handlebars')
-const child = Child.spawnSync(
-    'abi-gen', [
-        '--abis', Path.join(abiTempDir, '*.json'),
-        '--out', contractsTempDir,
-        '--partials', partialArg,
-        '--template', templateArg,
-    ],
-    {
-        // @ts-ignore
-        stdio: 'inherit'
-    })
-
-
-if (child.status != 0) {
-    process.exit(child.status)
-}
+  Path.join(templatePath, 'partials'), '*.handlebars')
+// In-place modify process.argv to "wrap" abi-gen, otherwise we need abi-gen in $PATH
+process.argv = [
+  // Emulate a call
+  process.argv[0], 'abi-gen',
+  // Actual args
+  '--abis', Path.join(abiTempDir, '*.json'),
+  '--out', contractsTempDir,
+  '--partials', partialArg,
+  '--template', templateArg,
+]
+// Do the "call"
+require('@0xproject/abi-gen')
 
 // Generate top-level index.ts re-exporting all contracts
 const exportStrings: string[] = []
