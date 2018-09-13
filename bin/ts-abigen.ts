@@ -83,13 +83,13 @@ process.argv = [
 // Do the "call"
 require('@0xproject/abi-gen')
 
+const contractFileNames = FS.readdirSync(contractsTempDir).filter(filename => {
+  return (/\.ts$/).test(filename)
+})
+
 // Generate top-level index.ts re-exporting all contracts
 const exportStrings: string[] = []
-FS.readdirSync(contractsTempDir).forEach(filename => {
-  if (!(/\.ts$/).test(filename)) {
-    return
-  }
-
+contractFileNames.forEach(filename => {
   const contractFile = Path.join(contractsTempDir, filename)
   const sourceFile = TS.createSourceFile(
     contractFile,
@@ -111,8 +111,46 @@ FS.readdirSync(contractsTempDir).forEach(filename => {
 })
 FS.writeFileSync(Path.join(modTempDir, 'index.ts'), exportStrings.join('\n') + '\n')
 
-// Move result to output
-FSE.moveSync(modTempDir, args.out)
+// Locate typescript type information required to compile interfaces
+const tsConfig = JSON.parse(FS.readFileSync(Path.join(root, 'tsconfig.json')).toString())
+// @ts-ignore
+tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: string) => {
+  return [
+    Path.join(path, '@0xproject/typescript-typings/types'),
+    Path.join(path, '@types'),
+  ]
+})).filter((path: string) => FS.existsSync(path))
 
-const finalDestination = FS.realpathSync(args.out)
-console.log(`\nModule path: ${finalDestination}`)
+
+// Run compilation (for each file)
+const compileFiles = contractFileNames.map(filename => Path.join(contractsTempDir, filename))
+compileFiles.push(Path.join(modTempDir, 'index.ts'))
+compileFiles.forEach(filePath => {
+  const content = FS.readFileSync(filePath).toString()
+  const res = TS.transpileModule(content, {
+    'compilerOptions': tsConfig.compilerOptions,
+    'fileName': filePath,
+  })
+
+  FS.writeFileSync(filePath.replace(/\.ts/, '.js'), res.outputText)
+})
+
+require('dts-generator').default({
+  name: args.name,
+  project: modTempDir,
+  out: Path.join(modTempDir, `${args.name}.d.ts`)
+  // @ts-ignore
+}).then(_ => {
+  FS.unlinkSync(Path.join(modTempDir, 'tsconfig.json'))
+  compileFiles.forEach(filePath => {
+    FS.unlinkSync(filePath)
+  })
+
+  // Move result to output
+  FSE.moveSync(modTempDir, args.out)
+
+  const finalDestination = FS.realpathSync(args.out)
+  console.log(`\nModule path: ${finalDestination}`)
+
+  console.log('done')
+})
