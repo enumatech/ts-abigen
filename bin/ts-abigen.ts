@@ -15,28 +15,38 @@ const abiGenMeta = JSON.parse(
         Path.join(root, 'package.json')).toString())
 
 const parser = new ArgumentParser.ArgumentParser({
-    'version': abiGenMeta['version'],
-    'addHelp': true,
-    description: abiGenMeta['description'],
+  'version': abiGenMeta['version'],
+  'addHelp': true,
+  description: abiGenMeta['description'],
 })
 parser.addArgument(
-    ['--combined'],
-    {
-        'required': true,
-        'help': 'Comined JSON output from solc',
-    })
+  ['--combined'],
+  {
+    'required': true,
+    'help': 'Comined JSON output from solc.',
+  })
 parser.addArgument(
-    ['--out'],
-    {
-        'required': true,
-        'help': 'Module output path',
-    })
+  ['--out'],
+  {
+    'required': true,
+    'help': 'Module output path.',
+  })
 parser.addArgument(
-    ['--name'],
-    {
-        'required': true,
-        'help': 'Name of resulting module (in package.json)',
-    })
+  ['--name'],
+  {
+    'required': true,
+    'help': 'Name of resulting module (in package.json).',
+  })
+parser.addArgument(
+  ['--only-ts'],
+  {
+    'required': false,
+    'action': 'storeTrue',
+    'help': [
+      'Only move contract interfaces to output directory.',
+      'This is useful if you want to drop interfaces into an existing project.',
+    ].join('\n'),
+  })
 const args = parser.parseArgs()
 
 // Extract ABI output from solc JSON output
@@ -45,14 +55,14 @@ const contracts = combinedJson['contracts']
 const abiTempDir = FS.mkdtempSync(Path.join(OS.tmpdir(), 'ts-abigen-abi-'))
 // @ts-ignore
 const abiFiles = Object.keys(contracts).reduce((acc, contract) => {
-    const value = contracts[contract]
-    const outFile = Path.join(
-        abiTempDir,
-        contract.split(':')[1] + '.json')
-    FS.writeFileSync(outFile, value['abi'])
+  const value = contracts[contract]
+  const outFile = Path.join(
+    abiTempDir,
+    contract.split(':')[1] + '.json')
+  FS.writeFileSync(outFile, value['abi'])
 
-    acc.push(outFile)
-    return acc
+  acc.push(outFile)
+  return acc
 }, <string[]>[])
 
 // Create directory temp dir
@@ -83,9 +93,29 @@ process.argv = [
 // Do the "call"
 require('@0xproject/abi-gen')
 
+
 const contractFileNames = FS.readdirSync(contractsTempDir).filter(filename => {
   return (/\.ts$/).test(filename)
 })
+const compileFiles = contractFileNames.map(filename => Path.join(contractsTempDir, filename))
+
+// If we only want to get the .ts files we can simply move them and skip all other operations
+if (args.only_ts) {
+  console.log('Writing typescript files directly to output directory')
+
+  try {
+    FS.mkdirSync(args.out)
+  } catch(e) {}  // Directory probably exists
+  compileFiles.forEach(filePath => {
+    const outFile = Path.join(args.out, Path.basename(filePath))
+
+    FSE.moveSync(filePath, outFile, {
+      'overwrite': true,
+    })
+  })
+
+  process.exit(0)
+}
 
 // Generate top-level index.ts re-exporting all contracts
 const exportStrings: string[] = []
@@ -121,9 +151,7 @@ tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: st
   ]
 })).filter((path: string) => FS.existsSync(path))
 
-
 // Run compilation (for each file)
-const compileFiles = contractFileNames.map(filename => Path.join(contractsTempDir, filename))
 compileFiles.push(Path.join(modTempDir, 'index.ts'))
 compileFiles.forEach(filePath => {
   const content = FS.readFileSync(filePath).toString()
