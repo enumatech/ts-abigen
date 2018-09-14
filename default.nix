@@ -1,8 +1,9 @@
-with import <nixpkgs> {};
-with (import ./pnpm2nix) { inherit pkgs; };
+{ pkgs ? (import <nixpkgs> {})
+, pnpm2nix ? ((import ./pnpm2nix) { inherit pkgs; })
+}:
 
-mkPnpmPackage {
-  src = lib.cleanSource ./.;
+pnpm2nix.mkPnpmPackage {
+  src = pkgs.lib.cleanSource ./.;
   allowImpure = true;
   packageJSON = ./package.json;
   shrinkwrapYML = ./shrinkwrap.yaml;

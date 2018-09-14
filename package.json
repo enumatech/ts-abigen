@@ -1,6 +1,6 @@
 {
   "name": "ts-abigen",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Generate nodejs modules from ethereum smart contracts",
   "main": "bin/ts-abigen.js",
   "scripts": {
