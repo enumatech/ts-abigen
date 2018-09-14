@@ -68,6 +68,7 @@ const abiFiles = Object.keys(contracts).reduce((acc, contract) => {
 // Create directory temp dir
 const modTempDir = FS.mkdtempSync(Path.join(OS.tmpdir(), 'ts-abigen-mod-'))
 FSE.copySync(Path.join(root, 'template_project'), modTempDir)
+Child.spawnSync('chmod', ['-R', '+w', modTempDir])
 const packageJson = JSON.parse(
     FS.readFileSync(
         Path.join(modTempDir, 'package.json')).toString())
@@ -176,7 +177,6 @@ require('dts-generator').default({
 
   // Move result to output
   FS.readdirSync(modTempDir).filter(filename => {
-    console.log(filename)
     FSE.moveSync(Path.join(modTempDir, filename), Path.join(args.out, filename), {
       'overwrite': true,
     })
