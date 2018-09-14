@@ -175,8 +175,11 @@ require('dts-generator').default({
   })
 
   // Move result to output
-  FSE.moveSync(modTempDir, args.out, {
-    'overwrite': true,
+  FS.readdirSync(modTempDir).filter(filename => {
+    console.log(filename)
+    FSE.moveSync(Path.join(modTempDir, filename), Path.join(args.out, filename), {
+      'overwrite': true,
+    })
   })
 
   const finalDestination = FS.realpathSync(args.out)
