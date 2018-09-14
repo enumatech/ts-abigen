@@ -2,9 +2,10 @@
 with (import <nixpkgs> {});
 
 mkShell {
+
   buildInputs = [
-    nodejs-8_x nodePackages_8_x.pnpm
-    nodejs-8_x.passthru.python
+    nodejs-8_x
+    nodePackages_8_x.pnpm
     solc
   ];
 

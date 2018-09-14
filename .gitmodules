@@ -1,0 +1,3 @@
+[submodule "pnpm2nix"]
+	path = pnpm2nix
+	url = git@github.com:adisbladis/pnpm2nix.git

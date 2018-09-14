@@ -175,7 +175,9 @@ require('dts-generator').default({
   })
 
   // Move result to output
-  FSE.moveSync(modTempDir, args.out)
+  FSE.moveSync(modTempDir, args.out, {
+    'overwrite': true,
+  })
 
   const finalDestination = FS.realpathSync(args.out)
   console.log(`\nModule path: ${finalDestination}`)
