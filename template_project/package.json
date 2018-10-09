@@ -6,8 +6,12 @@
     "@0xproject/utils": "^1.0.7",
     "@0xproject/web3-wrapper": "^2.0.1",
     "ethereum-types": "^1.0.5",
+    "ethereumjs-tx": "^1.3.7",
+    "ethereumjs-util": "^5.2.0",
     "ethers": "^3.0.27",
-    "lodash": "^4.17.10"
+    "lodash": "^4.17.10",
+    "sane-subproviders": "github:enumatech/sane-subproviders",
+    "web3-provider-engine-tiny": "github:enumatech/provider-engine"
   },
   "devDependencies": {
     "typescript": "^3.0.3"

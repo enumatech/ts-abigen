@@ -11,27 +11,15 @@ Then convert contracts to typescript
 ./bin/ts-abigen.js --out ./local_modules/test-contract --name test-contract --combined combined.json
 #+end_src
 
-Using your contract
+Using your contract(s)
 #+begin_src typescript
-import {
-    RPCSubprovider,
-    Web3ProviderEngine,
-} from 'sane-subproviders'  // This is an enuma fork of the 0xprojects subproviders with less cruft
-import { Web3Wrapper } from '@0xproject/web3-wrapper';
-
 // Change this to match your contract
-import { ExampleContract } from './local_modules/test-contract'
-
-const provider = new Web3ProviderEngine()
-provider.addProvider(new RPCSubprovider('http://localhost:8545'))
-provider.start()
-
-const w3 = new Web3Wrapper(provider)
+import { contracts } from './local_modules/test-contract'
 
 const contract = new ExampleContract(
+    'http://localhost:8545',
     '0x48624beaad14ea386e2185839aa10c1faf6b973a',
-    w3.getProvider(),
-    w3.getContractDefaults())
+    {})  //
 
 Promise.resolve()
     .then(async () => {

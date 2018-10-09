@@ -7,12 +7,32 @@ import * as Path from 'path'
 import * as FS from 'fs'
 import * as OS from 'os'
 
+const camelCase = require('camelcase')
+
 const cwd = __dirname
 const root = Path.join(cwd, '..')
 
 const abiGenMeta = JSON.parse(
     FS.readFileSync(
         Path.join(root, 'package.json')).toString())
+
+function findFilesRecursive(dirname: string, _acc?: string[]) {
+  if (_acc === undefined) {
+    _acc = []
+  }
+
+  FS.readdirSync(dirname).map(fname => {
+    const fullPath = Path.join(dirname, fname)
+
+    if (FS.statSync(fullPath).isDirectory()) {
+      findFilesRecursive(fullPath, _acc)
+    } else {
+      _acc!.push(fullPath)
+    }
+  })
+
+  return _acc
+}
 
 const parser = new ArgumentParser.ArgumentParser({
   'version': abiGenMeta['version'],
@@ -94,33 +114,10 @@ process.argv = [
 // Do the "call"
 require('@0xproject/abi-gen')
 
-
-const contractFileNames = FS.readdirSync(contractsTempDir).filter(filename => {
-  return (/\.ts$/).test(filename)
-})
-const compileFiles = contractFileNames.map(filename => Path.join(contractsTempDir, filename))
-
-// If we only want to get the .ts files we can simply move them and skip all other operations
-if (args.only_ts) {
-  console.log('Writing typescript files directly to output directory')
-
-  try {
-    FS.mkdirSync(args.out)
-  } catch(e) {}  // Directory probably exists
-  compileFiles.forEach(filePath => {
-    const outFile = Path.join(args.out, Path.basename(filePath))
-
-    FSE.moveSync(filePath, outFile, {
-      'overwrite': true,
-    })
-  })
-
-  process.exit(0)
-}
-
 // Generate top-level index.ts re-exporting all contracts
 const exportStrings: string[] = []
-contractFileNames.forEach(filename => {
+const contractMethodsStrings: string[] = []
+FS.readdirSync(contractsTempDir).filter(fname => (/\.ts$/).test(fname)).forEach(filename => {
   const contractFile = Path.join(contractsTempDir, filename)
   const sourceFile = TS.createSourceFile(
     contractFile,
@@ -135,15 +132,25 @@ contractFileNames.forEach(filename => {
       // @ts-ignore
       const className = node.name.escapedText
       const importFrom = ['./contracts', filename.replace(/\.ts/, '')].join('/')
-      exportStrings.push(`export {${className}} from "${importFrom}"`)
+      exportStrings.push(`import {${className}} from "${importFrom}"`)
+
+      const classNameCamel = camelCase(className)
+      contractMethodsStrings.push(`
+        public ${classNameCamel}At(address: string): ${className} {
+          return new ${className}(address, this._w3.getProvider(), this._w3.getContractDefaults())
+        }`)
       break
     }
   })
 })
-FS.writeFileSync(Path.join(modTempDir, 'index.ts'), exportStrings.join('\n') + '\n')
+const indexTS = Path.join(modTempDir, 'index.ts')
+const indexTSContents = FS.readFileSync(indexTS).toString()
+      .replace('// CONTRACT_METHODS_REPLACE', contractMethodsStrings.join(''))
+      .replace('// CONTRACT_IMPORT_REPLACE', exportStrings.join('\n') + '\n')
+FS.writeFileSync(indexTS, indexTSContents)
 
 // Locate typescript type information required to compile interfaces
-const tsConfig = JSON.parse(FS.readFileSync(Path.join(root, 'tsconfig.json')).toString())
+const tsConfig = JSON.parse(FS.readFileSync(Path.join(modTempDir, 'tsconfig.json')).toString())
 // @ts-ignore
 tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: string) => {
   return [
@@ -152,38 +159,27 @@ tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: st
   ]
 })).filter((path: string) => FS.existsSync(path))
 
-// Run compilation (for each file)
-compileFiles.push(Path.join(modTempDir, 'index.ts'))
-compileFiles.forEach(filePath => {
-  const content = FS.readFileSync(filePath).toString()
-  const res = TS.transpileModule(content, {
-    'compilerOptions': tsConfig.compilerOptions,
-    'fileName': filePath,
-  })
+// Compile all typescript files
+const tsFiles = findFilesRecursive(modTempDir).filter(fname => (/\.ts$/).test(fname))
+let program = TS.createProgram(tsFiles, tsConfig.compilerOptions)
+let emitResult = program.emit()
+if (emitResult.emitSkipped) {
+  console.error(emitResult)
+  process.exit(1)
+}
 
-  FS.writeFileSync(filePath.replace(/\.ts/, '.js'), res.outputText)
+// Delete all intermediate build files
+FS.unlinkSync(Path.join(modTempDir, 'tsconfig.json'))
+tsFiles.forEach(filePath => {
+  FS.unlinkSync(filePath)
 })
 
-require('dts-generator').default({
-  name: args.name,
-  project: modTempDir,
-  out: Path.join(modTempDir, `${args.name}.d.ts`)
-  // @ts-ignore
-}).then(_ => {
-  FS.unlinkSync(Path.join(modTempDir, 'tsconfig.json'))
-  compileFiles.forEach(filePath => {
-    FS.unlinkSync(filePath)
+FS.readdirSync(modTempDir).filter(filename => {
+  FSE.moveSync(Path.join(modTempDir, filename), Path.join(args.out, filename), {
+    'overwrite': true,
   })
-
-  // Move result to output
-  FS.readdirSync(modTempDir).filter(filename => {
-    FSE.moveSync(Path.join(modTempDir, filename), Path.join(args.out, filename), {
-      'overwrite': true,
-    })
-  })
-
-  const finalDestination = FS.realpathSync(args.out)
-  console.log(`\nModule path: ${finalDestination}`)
-
-  console.log('done')
 })
+
+const finalDestination = FS.realpathSync(args.out)
+console.log(`\nModule path: ${finalDestination}`)
+console.log('done')
