@@ -4,6 +4,7 @@ import { RPCSubprovider } from 'sane-subproviders'
 // @ts-ignore
 import Web3ProviderEngine = require('web3-provider-engine-tiny');
 import { OpaqueSignerSubprovider, Signer } from './subproviders/opaque_signer_subprovider';
+import { NonceTrackerSubprovider } from './subproviders/nonce_tracker';
 
 // CONTRACT_IMPORT_REPLACE
 
@@ -13,18 +14,19 @@ export class RPCClient {
     private readonly _provider: Web3ProviderEngine = undefined
     private readonly _signerSub: OpaqueSignerSubprovider
 
-    constructor(rpcURL?: string, txDefaults?: Partial<TxData>) {
+    constructor(rpcURL: string, chainID: number, txDefaults: Partial<TxData>) {
         this._txDefaults = txDefaults || {}
 
         const provider = this._provider = new Web3ProviderEngine()
         const w3 = this._w3 = new Web3Wrapper(provider, txDefaults)
 
-        const signerSub = this._signerSub = new OpaqueSignerSubprovider()
-        provider.addProvider(signerSub)
-
         if (rpcURL) {
+            const signerSub = this._signerSub = new OpaqueSignerSubprovider(chainID)
+            provider.addProvider(new NonceTrackerSubprovider())
+            provider.addProvider(signerSub)
             provider.addProvider(new RPCSubprovider(rpcURL))
         }
+
         provider.start()
     }
 

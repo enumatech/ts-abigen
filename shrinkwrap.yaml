@@ -11,7 +11,7 @@ dependencies:
   camelcase: 5.0.0
   ethereum-types: 1.0.9
   ethereumjs-tx: 1.3.7
-  ethereumjs-util: 5.2.0
+  ethereumjs-util: 6.0.0
   ethers: 3.0.29
   fs-extra: 7.0.0
   lodash: 4.17.11
@@ -952,6 +952,18 @@ packages:
     dev: false
     resolution:
       integrity: sha512-CJAKdI0wgMbQFLlLRtZKGcy/L6pzVRgelIZqRqNbuVFM3K9VEnyfbcvz0ncWMRNCe4kaHWjwRYQcYMucmwsnWA==
+  /ethereumjs-util/6.0.0:
+    dependencies:
+      bn.js: 4.11.8
+      create-hash: 1.2.0
+      ethjs-util: 0.1.6
+      keccak: 1.4.0
+      rlp: 2.1.0
+      safe-buffer: 5.1.2
+      secp256k1: 3.5.2
+    dev: false
+    resolution:
+      integrity: sha512-E3yKUyl0Fs95nvTFQZe/ZSNcofhDzUsDlA5y2uoRmf1+Ec7gpGhNCsgKkZBRh7Br5op8mJcYF/jFbmjj909+nQ==
   /ethereumjs-vm/2.3.4:
     dependencies:
       async: 2.6.1
@@ -2826,7 +2838,7 @@ specifiers:
   camelcase: ^5.0.0
   ethereum-types: ^1.0.6
   ethereumjs-tx: ^1.3.7
-  ethereumjs-util: ^5.2.0
+  ethereumjs-util: ^6.0.0
   ethers: ^3.0.27
   fs-extra: ^7.0.0
   lodash: ^4.17.10

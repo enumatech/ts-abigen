@@ -30,40 +30,50 @@ function assertHexString(value: string): void {
     );
 }
 
-function wrapSignTx(sign: Signer, txParams: PartialTxParams): EthereumTx {
-    const tx = new EthereumTx(txParams)
-    const msgHash = tx.hash(false)
-
-    const rawSig = sign(msgHash)
-
-    const sig = {
-        'r': rawSig.slice(0, 32),
-        's': rawSig.slice(32, 32),
-    }
-    Object.assign(tx, sig)
-
-    function eip155(v: number) {
-        const chainId = tx._chainId || 0
-        return v + (chainId * 2 + 8)
-    }
-
-    // Try recovery params
-    tx.v = eip155(27)
-    if (!tx.verifySignature()) {
-        tx.v = eip155(28)
-    }
-
-    return tx
+function eip155(i: number, chainId: number): number {
+    return chainId * 2 + i
 }
 
+function verifyV(msgHash: any, from: string, tx: any, chainId: number, v: number): boolean {
+    let pub = ethUtil.ecrecover(msgHash, v, tx.r, tx.s, chainId);
+    let addrBuf = ethUtil.pubToAddress(pub);
+    let addr = ethUtil.bufferToHex(addrBuf);
+    return addr === from
+}
+
+function wrapSignTx(sign: Signer, txParams: PartialTxParams): EthereumTx {
+    const tx = new EthereumTx(txParams);
+    const msgHash = tx.hash(false);
+    const rawSig = sign(msgHash);
+    const sig = {
+        'r': rawSig.slice(0, 32),
+        's': rawSig.slice(32, 64)
+    };
+    Object.assign(tx, sig);
+
+    // Try recovery params
+    let v
+    tx.v = v = eip155(36, txParams.chainId);
+    if (!verifyV(msgHash, txParams.from, tx, txParams.chainId, v)) {
+        tx.v = v = eip155(35, txParams.chainId);
+    }
+    if (!verifyV(msgHash, txParams.from, tx, txParams.chainId, v)) {
+        throw new Error('Could not make valid signature')
+    }
+
+    return tx;
+}
 
 export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
 
-    private readonly _signers: SignersMap = {}
+    private readonly _signers: SignersMap
+    private readonly _chainID: number
+    private readonly _nonces: any = {}
 
-    constructor() {
+    constructor(chainID: number) {
         super();
         this._signers = {}
+        this._chainID = chainID
     }
 
     public addSigner(address: string, signer: Signer) {
@@ -94,6 +104,16 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
             throw new Error('Transaction address undefined')
         }
 
+        // TODO: This nonce-tracking is naive and doesn't work well in races
+        // Needs more proper nonce-tracking
+        let nonce = ethUtil.bufferToInt(txParams.nonce)
+        if (nonce === this._nonces[txParams.from]) {
+            nonce = nonce + 1
+            txParams.nonce = ethUtil.intToBuffer(nonce)
+        }
+        this._nonces[txParams.from] = nonce
+
+        txParams.chainId = this._chainID
         const signer = this.getSigner(txParams.from)
         const tx = wrapSignTx(signer, txParams)
 
