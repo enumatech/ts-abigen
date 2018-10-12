@@ -68,7 +68,6 @@ export class NonceTrackerSubprovider extends Subprovider {
                     const address = NonceTrackerSubprovider._determineAddress(payload);
                     const cachedResult = this._nonceCache[address];
                     if (!_.isUndefined(cachedResult)) {
-                        console.log('returning cached')
                         return end(null, cachedResult);
                     } else {
                         return next((requestError: Error | null, requestResult: any, cb: Callback) => {

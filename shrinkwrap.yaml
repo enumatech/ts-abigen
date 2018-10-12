@@ -4,10 +4,12 @@ dependencies:
   '@0xproject/typescript-typings': 2.0.2
   '@0xproject/utils': 1.0.11
   '@0xproject/web3-wrapper': 2.0.3
+  '@types/async-lock': 1.1.0
   '@types/ethereumjs-tx': 1.0.0
   '@types/ethereumjs-util': 5.2.0
   '@types/lodash': 4.14.116
   argparse: 1.0.10
+  async-lock: 1.1.3
   camelcase: 5.0.0
   ethereum-types: 1.0.9
   ethereumjs-tx: 1.3.7
@@ -256,6 +258,11 @@ packages:
     dev: true
     resolution:
       integrity: sha512-+4KNdOqes4Bq0fu5dQCTUVpNQl10ui1JWdXG6S6AvRqHM4K5K1/6SBJ0Qz7PT+K85AcJ0UC7ZDuTz+aL3n6tWw==
+  /@types/async-lock/1.1.0:
+    dev: false
+    resolution:
+      integrity: sha512-Eo8EXiqmChtkt0ETf6AQ8aiDHT3Tht6OuMSa3/9nfuyqFimp7ZwPMiufsA56A7ZUGBuwFzH860jO0d8n0lETtg==
+      tarball: 'http://registry.npmjs.org/@types/async-lock/-/async-lock-1.1.0.tgz'
   /@types/bn.js/4.11.2:
     dependencies:
       '@types/node': 10.11.6
@@ -387,6 +394,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-jp/uFnooOiO+L211eZOoSyzpOITMXx1rBITauYykG3BRYPu8h0UcxsPNB04RR5vo4Tyz3+ay17tR6JVf9qzYWg==
+  /async-lock/1.1.3:
+    dev: false
+    resolution:
+      integrity: sha512-nxlfFLGfCJ1r7p9zhR5OuL6jYkDd9P7FqSitfLji+C1NdyhCz4+rWW3kiPiyPASHhN7VlsKEvRWWbnME9lYngw==
   /async/1.5.2:
     dev: false
     resolution:
@@ -2829,12 +2840,14 @@ specifiers:
   '@0xproject/utils': ^1.0.8
   '@0xproject/web3-wrapper': ^2.0.2
   '@types/argparse': ^1.0.34
+  '@types/async-lock': ^1.1.0
   '@types/ethereumjs-tx': ^1.0.0
   '@types/ethereumjs-util': ^5.2.0
   '@types/fs-extra': ^5.0.4
   '@types/lodash': ^4.14.116
   '@types/node': ^10.9.4
   argparse: ^1.0.10
+  async-lock: ^1.1.3
   camelcase: ^5.0.0
   ethereum-types: ^1.0.6
   ethereumjs-tx: ^1.3.7

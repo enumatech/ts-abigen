@@ -4,6 +4,8 @@ import EthereumTx = require('ethereumjs-tx');
 import * as ethUtil from 'ethereumjs-util';
 import { addressUtils, BigNumber } from '@0xproject/utils';
 import * as _ from 'lodash';
+import AsyncLock = require('async-lock');
+
 
 import { PartialTxParams, WalletSubproviderErrors } from 'sane-subproviders/lib/src/types';
 
@@ -14,7 +16,7 @@ export interface SignersMap {
 }
 
 export interface Signer {
-    (message: Buffer): Buffer;
+    (message: Buffer): Promise<Buffer>;
 }
 
 function assert(cond: boolean, msg: string): void {
@@ -38,13 +40,19 @@ function verifyV(msgHash: any, from: string, tx: any, chainId: number, v: number
     let pub = ethUtil.ecrecover(msgHash, v, tx.r, tx.s, chainId);
     let addrBuf = ethUtil.pubToAddress(pub);
     let addr = ethUtil.bufferToHex(addrBuf);
+
     return addr === from
 }
 
-function wrapSignTx(sign: Signer, txParams: PartialTxParams): EthereumTx {
+async function wrapSignTx(sign: Signer, txParams: PartialTxParams): Promise<EthereumTx> {
     const tx = new EthereumTx(txParams);
     const msgHash = tx.hash(false);
-    const rawSig = sign(msgHash);
+
+    let rawSig
+    do {
+        rawSig = await sign(msgHash)
+    } while (rawSig[32] >= 0x80)
+
     const sig = {
         'r': rawSig.slice(0, 32),
         's': rawSig.slice(32, 64)
@@ -68,12 +76,14 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
 
     private readonly _signers: SignersMap
     private readonly _chainID: number
+    private readonly _lock: AsyncLock
     private readonly _nonces: any = {}
 
     constructor(chainID: number) {
         super();
         this._signers = {}
         this._chainID = chainID
+        this._lock = new AsyncLock()
     }
 
     public addSigner(address: string, signer: Signer) {
@@ -98,27 +108,33 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
         return signer
     }
 
-    public async signTransactionAsync(txParams: PartialTxParams): Promise<string> {
+    private async _signTransactionAsync(txParams: PartialTxParams): Promise<string> {
         OpaqueSignerSubprovider._validateTxParams(txParams);
         if (_.isUndefined(txParams.from)) {
             throw new Error('Transaction address undefined')
         }
 
-        // TODO: This nonce-tracking is naive and doesn't work well in races
-        // Needs more proper nonce-tracking
-        let nonce = ethUtil.bufferToInt(txParams.nonce)
-        if (nonce === this._nonces[txParams.from]) {
-            nonce = nonce + 1
-            txParams.nonce = ethUtil.intToBuffer(nonce)
-        }
-        this._nonces[txParams.from] = nonce
+        // TODO: This method of getting nonce is not resilient to races
+        const nonceResult = (await this.emitPayloadAsync({
+            method: 'eth_getTransactionCount',
+            params: [txParams.from, 'pending'],
+        }))['result'];
+        txParams.nonce = ethUtil.bufferToInt(nonceResult) + 1
 
         txParams.chainId = this._chainID
         const signer = this.getSigner(txParams.from)
-        const tx = wrapSignTx(signer, txParams)
+        const tx = await wrapSignTx(signer, txParams)
 
         const rawTx = `0x${tx.serialize().toString('hex')}`;
         return rawTx;
+    }
+
+    //
+    public async signTransactionAsync(txParams: PartialTxParams): Promise<string> {
+        const that = this
+        return this._lock.acquire(txParams.from, async () => {
+            return that._signTransactionAsync(txParams)
+        })
     }
 
     public async signPersonalMessageAsync(data: string, address: string): Promise<string> {
