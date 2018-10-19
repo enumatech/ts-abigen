@@ -119,7 +119,7 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
             method: 'eth_getTransactionCount',
             params: [txParams.from, 'pending'],
         }))['result'];
-        txParams.nonce = ethUtil.bufferToInt(nonceResult) + 1
+        txParams.nonce = ethUtil.bufferToInt(nonceResult)
 
         txParams.chainId = this._chainID
         const signer = this.getSigner(txParams.from)
