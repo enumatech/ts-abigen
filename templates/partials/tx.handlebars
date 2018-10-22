@@ -27,18 +27,10 @@ public {{this.tsName}} = {
                 {{> params inputs=inputs}}
             ),
         );
-        while (true) {
-            try {
-                const txHash = await self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-                return txHash;
-            } catch (err) {
-                if (err.message !== 'nonce too low' && err.message !== 'replacement transaction underpriced') {
-                    throw new Error(err.message)
-                }
-            }
-        }
-        {{!-- const txHash = await self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
-        return txHash; --}}
+
+        const txHash = await self._sendTransactionAsync(txDataWithDefaults);
+        return txHash;
+
     },
     async estimateGas(
     {{> typed_params inputs=inputs}}
