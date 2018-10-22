@@ -1,5 +1,4 @@
 node_modules/
 template_project/*.js
 template_project/api/*
-*.js
 *.d.ts
