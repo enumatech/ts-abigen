@@ -77,7 +77,7 @@ export class {{contractName}}Contract extends BaseContract {
                 const txHash = await self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
                 return txHash
             } catch (err) {
-                if (err.message !== 'nonce too low' && err.message !== 'replacement transaction underpriced') {
+                if (err.message !== 'nonce too low' || txDataWithDefaults.nonce != null) {
                     throw err
                 }
             }
