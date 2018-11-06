@@ -78,7 +78,7 @@ export class {{contractName}}Contract extends BaseContract {
                 return txHash
             } catch (err) {
                 if (err.message !== 'nonce too low' && err.message !== 'replacement transaction underpriced') {
-                    throw new Error(err.message)
+                    throw err
                 }
             }
         }
