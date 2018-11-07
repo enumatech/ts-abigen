@@ -93,7 +93,7 @@ const packageJson = JSON.parse(
     FS.readFileSync(
         Path.join(modTempDir, 'package.json')).toString())
 packageJson['name'] = args.name
-FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJson))
+FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJson, null, 2))
 
 // Generate the module
 const contractsTempDir = Path.join(modTempDir, 'contracts')
