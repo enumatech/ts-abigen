@@ -4,6 +4,9 @@ const ethUtil = require('ethereumjs-util')
 type EthereumTx = import('ethereumjs-tx');
 type ethUtil = typeof import('ethereumjs-util');
 
+import { Buffer } from 'buffer';
+export { Buffer }
+
 import _ from 'lodash';
 import { PartialTxParams, WalletSubproviderErrors } from 'sane-subproviders/lib/src/types';
 import { BaseWalletSubprovider } from 'sane-subproviders/lib/src/subproviders/base_wallet_subprovider';
