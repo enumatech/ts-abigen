@@ -164,7 +164,7 @@ const tsFiles = findFilesRecursive(modTempDir).filter(fname => (/\.ts$/).test(fn
 let program = TS.createProgram(tsFiles, tsConfig.compilerOptions)
 let emitResult = program.emit()
 if (emitResult.emitSkipped) {
-  console.error(emitResult)
+  console.error(JSON.stringify(emitResult, null, 2))
   process.exit(1)
 }
 
