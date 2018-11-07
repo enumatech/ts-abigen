@@ -78,7 +78,7 @@ FSE.copySync(Path.join(root, 'template_project'), modTempDir);
 Child.spawnSync('chmod', ['-R', '+w', modTempDir]);
 const packageJson = JSON.parse(FS.readFileSync(Path.join(modTempDir, 'package.json')).toString());
 packageJson['name'] = args.name;
-FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJson));
+FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJson, null, 2));
 // Generate the module
 const contractsTempDir = Path.join(modTempDir, 'contracts');
 const templatePath = Path.join(root, 'templates');

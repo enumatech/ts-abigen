@@ -1,47 +1,47 @@
 import { TxData } from 'ethereum-types';
 import { Web3Wrapper } from '@0xproject/web3-wrapper';
-import { RPCSubprovider } from 'sane-subproviders'
+import { Subprovider } from 'sane-subproviders'
 // @ts-ignore
 import Web3ProviderEngine = require('web3-provider-engine-tiny');
-import { OpaqueSignerSubprovider, Signer } from './subproviders/opaque_signer_subprovider';
-import { NonceTrackerSubprovider } from './subproviders/nonce_tracker';
 
 // CONTRACT_IMPORT_REPLACE
 
 export class RPCClient {
-    private readonly _txDefaults: Partial<TxData> = {}
+    private readonly _txDefaults: Partial<TxData>
     private readonly _w3: Web3Wrapper
-    private readonly _provider: Web3ProviderEngine = undefined
-    private readonly _signerSub: OpaqueSignerSubprovider
+    private readonly _provider: Web3ProviderEngine
 
-    constructor(rpcURL: string, chainID: number, txDefaults: Partial<TxData>) {
+    /**
+     * Constructor.
+     * @param txDefaults Default to use for all transactions
+     */
+    constructor(txDefaults: Partial<TxData>) {
         this._txDefaults = txDefaults || {}
 
         const provider = this._provider = new Web3ProviderEngine()
-        const w3 = this._w3 = new Web3Wrapper(provider, txDefaults)
-
-        const signerSub = this._signerSub = new OpaqueSignerSubprovider(chainID)
-        if (rpcURL) {
-            provider.addProvider(signerSub)
-            provider.addProvider(new RPCSubprovider(rpcURL))
-        }
-
-        provider.start()
+        this._w3 = new Web3Wrapper(provider, txDefaults)
     }
 
     /**
-     * @param address  Ethereum address (with 0x prefix) to add signer for
-     * @param signer   Async function that takes care of signing
+     * Add a subprovider to the provider engine.
+     * @param sub The Subprovider to add to the provider engine
      */
-    public addSigner(address: string, signer: Signer): void {
-        this._signerSub.addSigner(address, signer)
+    addProvider(sub: Subprovider) {
+        this._provider.addProvider(sub)
     }
 
     /**
-     * @param address  Ethereum address (with 0x prefix) to remove signer for
+     * Start the provider engine.
      */
-    public removeSigner(address: string) {
-        this._signerSub.removeSigner(address)
+    start() {
+        this._provider.start()
+    }
+
+    /**
+     * @returns Reference to the internal Web3Wrapper
+     */
+    w3() {
+        return this._w3
     }
 
     // CONTRACT_METHODS_REPLACE

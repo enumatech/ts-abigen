@@ -8,5 +8,8 @@
   },
   "exclude": [
     "template_project"
+  ],
+  "include": [
+    "bin"
   ]
 }
