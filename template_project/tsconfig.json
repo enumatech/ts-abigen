@@ -6,8 +6,5 @@
     "declaration": true,
     "typeRoots": ["node_modules/@0xproject/typescript-typings/types", "node_modules/@types"],
     "esModuleInterop": true
-  },
-  "exclude": [
-    "template_project"
-  ]
+  }
 }

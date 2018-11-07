@@ -1,45 +1,29 @@
 const EthereumTx = require('ethereumjs-tx');
 const ethUtil = require('ethereumjs-util')
-import EthereumTx = require('ethereumjs-tx');
-import * as ethUtil from 'ethereumjs-util';
-import { addressUtils, BigNumber } from '@0xproject/utils';
-import * as _ from 'lodash';
-import AsyncLock = require('async-lock');
+// Import statements for the (out of date) type information
+type EthereumTx = import('ethereumjs-tx');
+type ethUtil = typeof import('ethereumjs-util');
 
-
+import _ from 'lodash';
 import { PartialTxParams, WalletSubproviderErrors } from 'sane-subproviders/lib/src/types';
-
 import { BaseWalletSubprovider } from 'sane-subproviders/lib/src/subproviders/base_wallet_subprovider';
 
-export interface SignersMap {
-    [key: string]: Signer;
-}
+export type Signer = (message: Buffer) => Promise<Buffer>;
 
-export interface Signer {
-    (message: Buffer): Promise<Buffer>;
-}
-
-function assert(cond: boolean, msg: string): void {
-    if (!cond) {
-        throw new Error(msg)
-    }
-}
-
-function assertHexString(value: string): void {
-    assert(
-        _.isString(value) && (/^0x[0-9A-F]*$/i).test(value),
-        `Expected hex string, got value "${value}"`
-    );
+interface Signature {
+    r: Buffer
+    s: Buffer
+    v: number
 }
 
 function eip155(i: number, chainId: number): number {
     return chainId * 2 + i
 }
 
-function verifyV(msgHash: any, from: string, tx: any, chainId: number, v: number): boolean {
-    let pub = ethUtil.ecrecover(msgHash, v, tx.r, tx.s, chainId);
-    let addrBuf = ethUtil.pubToAddress(pub);
-    let addr = ethUtil.bufferToHex(addrBuf);
+function verifyV(msgHash: Buffer, from: string, sig: Signature, chainId: number): boolean {
+    const pub = ethUtil.ecrecover(msgHash, sig.v, sig.r, sig.s, chainId);
+    const addrBuf = ethUtil.pubToAddress(pub);
+    const addr = ethUtil.bufferToHex(addrBuf);
 
     return addr === from
 }
@@ -48,59 +32,56 @@ async function wrapSignTx(sign: Signer, txParams: PartialTxParams): Promise<Ethe
     const tx = new EthereumTx(txParams);
     const msgHash = tx.hash(false);
 
-    let rawSig
+    let sig
     do {
-        rawSig = await sign(msgHash)
-    } while (rawSig[32] >= 0x80)
+        const rawSig = await sign(msgHash)
+        sig = {
+            r: rawSig.slice(0, 32),
+            s: rawSig.slice(32, 64),
+            v: parseInt(rawSig.slice(64).toString('hex'), 16)
+        };
+        // Depending on genesis, negative values for 's' might not be accepted
+    } while (sig.s[0] >= 0x80)
 
-    const sig = {
-        'r': rawSig.slice(0, 32),
-        's': rawSig.slice(32, 64)
-    };
-    Object.assign(tx, sig);
-
-    // Try recovery params
-    let v
-    tx.v = v = eip155(36, txParams.chainId);
-    if (!verifyV(msgHash, txParams.from, tx, txParams.chainId, v)) {
-        tx.v = v = eip155(35, txParams.chainId);
+    if (isNaN(sig.v)) {
+        // Try recovery params
+        sig.v = eip155(36, txParams.chainId);
+        if (!verifyV(msgHash, txParams.from, sig, txParams.chainId)) {
+            sig.v = eip155(35, txParams.chainId);
+            if (!verifyV(msgHash, txParams.from, sig, txParams.chainId)) {
+                throw new Error(`Could not make valid signature for ${txParams.from}`)
+            }
+        }
     }
-    if (!verifyV(msgHash, txParams.from, tx, txParams.chainId, v)) {
-        throw new Error('Could not make valid signature')
-    }
 
-    return tx;
+    return Object.assign(tx, sig);
 }
 
 export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
 
-    private readonly _signers: SignersMap
-    private readonly _chainID: number
-    private readonly _lock: AsyncLock
-    private readonly _nonces: any = {}
+    private readonly _signers = new Map<string,Signer>();
+    private readonly _chainID: number;
 
     constructor(chainID: number) {
         super();
-        this._signers = {}
-        this._chainID = chainID
-        this._lock = new AsyncLock()
+        this._chainID = chainID;
     }
 
     public addSigner(address: string, signer: Signer) {
-        this._signers[address] = signer
+        this._signers.set(address, signer);
     }
 
     public removeSigner(address: string) {
-        delete this._signers[address]
+        this._signers.delete(address);
     }
 
     public async getAccountsAsync(): Promise<string[]> {
-        return Object.keys(this._signers)
+        return Array.from(this._signers.keys());
     }
 
     private getSigner(address: string): Signer {
-        const signer = this._signers[address];
-        if (signer == undefined) {
+        const signer = this._signers.get(address);
+        if (signer === undefined) {
             throw new Error(
                 `Signer for address not found: ${address}`,
             );
@@ -108,33 +89,13 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
         return signer
     }
 
-    private async _signTransactionAsync(txParams: PartialTxParams): Promise<string> {
-        OpaqueSignerSubprovider._validateTxParams(txParams);
-        if (_.isUndefined(txParams.from)) {
-            throw new Error('Transaction address undefined')
-        }
-
-        // TODO: This method of getting nonce is not resilient to races
-        const nonceResult = (await this.emitPayloadAsync({
-            method: 'eth_getTransactionCount',
-            params: [txParams.from, 'pending'],
-        }))['result'];
-        txParams.nonce = ethUtil.bufferToInt(nonceResult)
-
+    public async signTransactionAsync(txParams: PartialTxParams): Promise<string> {
         txParams.chainId = this._chainID
         const signer = this.getSigner(txParams.from)
         const tx = await wrapSignTx(signer, txParams)
 
         const rawTx = `0x${tx.serialize().toString('hex')}`;
         return rawTx;
-    }
-
-    //
-    public async signTransactionAsync(txParams: PartialTxParams): Promise<string> {
-        const that = this
-        return this._lock.acquire(txParams.from, async () => {
-            return that._signTransactionAsync(txParams)
-        })
     }
 
     public async signPersonalMessageAsync(data: string, address: string): Promise<string> {

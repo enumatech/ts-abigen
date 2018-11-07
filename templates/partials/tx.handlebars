@@ -28,7 +28,7 @@ public {{this.tsName}} = {
             ),
         );
 
-        const txHash = await self._sendTransactionAsync(txDataWithDefaults);
+        const txHash = await self._web3Wrapper.sendTransactionAsync(txDataWithDefaults);
         return txHash;
     },
     async estimateGas(
