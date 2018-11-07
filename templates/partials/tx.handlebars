@@ -30,7 +30,6 @@ public {{this.tsName}} = {
 
         const txHash = await self._sendTransactionAsync(txDataWithDefaults);
         return txHash;
-
     },
     async estimateGas(
     {{> typed_params inputs=inputs}}
