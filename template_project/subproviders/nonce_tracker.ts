@@ -27,7 +27,8 @@ export class NonceTrackerSubprovider extends Subprovider {
                             const response = await this._emitSendTransactionAsync(signedTx.result.raw);
                             end(null, response.result);
                         } catch (err) {
-                            if (err.message !== 'nonce too low' || txParams.nonce != null) {
+                            if ((err.message !== 'nonce too low' && err.message !== 'replacement transaction underpriced')
+                                || txParams.nonce != null) {
                                 throw err;
                             }
                             // Retry if we didn't get a nonce to begin with and the nonce is too low
