@@ -159,7 +159,7 @@ tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: st
   ]
 })).filter((path: string) => FS.existsSync(path))
 
-if (args.only_ts) {
+if (!args.only_ts) {
   // Compile all typescript files
   const tsFiles = findFilesRecursive(modTempDir).filter(fname => (/\.ts$/).test(fname))
   let program = TS.createProgram(tsFiles, tsConfig.compilerOptions)

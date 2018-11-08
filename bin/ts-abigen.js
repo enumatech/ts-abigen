@@ -122,7 +122,7 @@ tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map(function 
         Path.join(path, '@types'),
     ];
 })).filter(function (path) { return FS.existsSync(path); });
-if (args.only_ts) {
+if (!args.only_ts) {
     // Compile all typescript files
     var tsFiles = findFilesRecursive(modTempDir).filter(function (fname) { return (/\.ts$/).test(fname); });
     var program = TS.createProgram(tsFiles, tsConfig.compilerOptions);
