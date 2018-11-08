@@ -101,8 +101,7 @@ export class OpaqueSignerSubprovider extends Subprovider {
             case 'eth_signTransaction':
                 txParams = payload.params[0];
                 try {
-                    const filledParams = await this._populateMissingTxParamsAsync(txParams);
-                    const signedTx = await this.signTransactionAsync(filledParams);
+                    const signedTx = await this.signTransactionAsync(txParams);
                     const result = {
                         raw: signedTx,
                         tx: txParams,
@@ -118,34 +117,4 @@ export class OpaqueSignerSubprovider extends Subprovider {
                 return;
         }
     }
-
-    private async _populateMissingTxParamsAsync(partialTxParams: PartialTxParams): Promise<PartialTxParams> {
-        let txParams = partialTxParams;
-        if (_.isUndefined(partialTxParams.gasPrice)) {
-            const gasPriceResult = await this.emitPayloadAsync({
-                method: 'eth_gasPrice',
-                params: [],
-            });
-            const gasPrice = gasPriceResult.result.toString();
-            txParams = { ...txParams, gasPrice };
-        }
-        if (_.isUndefined(partialTxParams.nonce)) {
-            const nonceResult = await this.emitPayloadAsync({
-                method: 'eth_getTransactionCount',
-                params: [partialTxParams.from, 'pending'],
-            });
-            const nonce = nonceResult.result;
-            txParams = { ...txParams, nonce };
-        }
-        if (_.isUndefined(partialTxParams.gas)) {
-            const gasResult = await this.emitPayloadAsync({
-                method: 'eth_estimateGas',
-                params: [partialTxParams],
-            });
-            const gas = gasResult.result.toString();
-            txParams = { ...txParams, gas };
-        }
-        return txParams;
-    }
-
 }
