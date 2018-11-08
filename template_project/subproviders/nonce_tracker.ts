@@ -6,6 +6,13 @@ import { Subprovider } from 'sane-subproviders/lib/src/subproviders/subprovider'
 
 export class NonceTrackerSubprovider extends Subprovider {
 
+    private addresses:Set<string>;
+
+    constructor(addresses:Set<string>) {
+        super();
+        this.addresses = addresses;
+    }
+
     // Copied from BaseWalletSubprovider
     private static _validateSender(sender: string): void {
         if (_.isUndefined(sender) || !addressUtils.isAddress(sender)) {
@@ -20,6 +27,10 @@ export class NonceTrackerSubprovider extends Subprovider {
                 txParams = payload.params[0];
                 try {
                     NonceTrackerSubprovider._validateSender(txParams.from);
+                    if (this.addresses.has(txParams.from)) {
+                        next();
+                        return;
+                    }
                     while (true) {
                         try {
                             const filledParams = await this._populateMissingTxParamsAsync(txParams);

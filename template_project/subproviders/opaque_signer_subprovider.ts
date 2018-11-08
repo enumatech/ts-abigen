@@ -3,13 +3,11 @@ const ethUtil = require('ethereumjs-util')
 // Import statements for the (out of date) type information
 type EthereumTx = import('ethereumjs-tx');
 type ethUtil = typeof import('ethereumjs-util');
-
-import { Buffer } from 'buffer';
-export { Buffer }
+import { JSONRPCRequestPayload } from 'ethereum-types';
 
 import _ from 'lodash';
-import { PartialTxParams, WalletSubproviderErrors } from 'sane-subproviders/lib/src/types';
-import { BaseWalletSubprovider } from 'sane-subproviders/lib/src/subproviders/base_wallet_subprovider';
+import { PartialTxParams, Callback, ErrorCallback,  } from 'sane-subproviders/lib/src/types';
+import { Subprovider } from 'sane-subproviders/lib/src/subproviders/subprovider';
 
 export type Signer = (message: Buffer) => Promise<Buffer>;
 
@@ -60,7 +58,7 @@ async function wrapSignTx(sign: Signer, txParams: PartialTxParams): Promise<Ethe
     return Object.assign(tx, sig);
 }
 
-export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
+export class OpaqueSignerSubprovider extends Subprovider {
 
     private readonly _signers = new Map<string,Signer>();
     private readonly _chainID: number;
@@ -76,10 +74,6 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
 
     public removeSigner(address: string) {
         this._signers.delete(address);
-    }
-
-    public async getAccountsAsync(): Promise<string[]> {
-        return Array.from(this._signers.keys());
     }
 
     private getSigner(address: string): Signer {
@@ -101,11 +95,26 @@ export class OpaqueSignerSubprovider extends BaseWalletSubprovider {
         return rawTx;
     }
 
-    public async signPersonalMessageAsync(data: string, address: string): Promise<string> {
-        if (_.isUndefined(data)) {
-            throw new Error(WalletSubproviderErrors.DataMissingForSignPersonalMessage);
-        }
-        throw new Error('Not implemented')
-    }
+    public async handleRequest(payload: JSONRPCRequestPayload, next: Callback, end: ErrorCallback): Promise<void> {
+        let txParams;
+        switch (payload.method) {
+            case 'eth_signTransaction':
+                txParams = payload.params[0];
+                try {
+                    const signedTx = await this.signTransactionAsync(txParams);
+                    const result = {
+                        raw: signedTx,
+                        tx: txParams,
+                    };
+                    end(null, result);
+                } catch (err) {
+                    end(err);
+                }
+                return;
 
+            default:
+                next();
+                return;
+        }
+    }
 }
