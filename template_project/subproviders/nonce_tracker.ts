@@ -8,11 +8,15 @@ import AsyncLock from 'async-lock';
 export class NonceTrackerSubprovider extends Subprovider {
 
     private readonly _lock = new AsyncLock();
-    private readonly _addresses:Set<string>;
+    private readonly _addresses : Set<string>;
 
-    constructor(addresses:Set<string>) {
+    /**
+     * Constructor.
+     * @param addresses Optional iterable of addresses that should not be intercepted
+     */
+    constructor(addresses : Iterable<string>|undefined|null) {
         super();
-        this._addresses = addresses;
+        this._addresses = new Set(addresses || []);
     }
 
     // Copied from BaseWalletSubprovider
