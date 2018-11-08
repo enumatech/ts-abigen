@@ -54,7 +54,7 @@ parser.addArgument(
 parser.addArgument(
   ['--name'],
   {
-    'required': true,
+    'required': false,
     'help': 'Name of resulting module (in package.json).',
   })
 parser.addArgument(
@@ -92,7 +92,7 @@ Child.spawnSync('chmod', ['-R', '+w', modTempDir])
 const packageJson = JSON.parse(
     FS.readFileSync(
         Path.join(modTempDir, 'package.json')).toString())
-packageJson['name'] = args.name
+packageJson['name'] = args.name || Path.basename(args.out)
 FS.writeFileSync(Path.join(modTempDir, 'package.json'), JSON.stringify(packageJson, null, 2))
 
 // Generate the module
@@ -159,20 +159,22 @@ tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: st
   ]
 })).filter((path: string) => FS.existsSync(path))
 
-// Compile all typescript files
-const tsFiles = findFilesRecursive(modTempDir).filter(fname => (/\.ts$/).test(fname))
-let program = TS.createProgram(tsFiles, tsConfig.compilerOptions)
-let emitResult = program.emit()
-if (emitResult.emitSkipped) {
-  console.error(emitResult)
-  process.exit(1)
-}
+if (args.only_ts) {
+  // Compile all typescript files
+  const tsFiles = findFilesRecursive(modTempDir).filter(fname => (/\.ts$/).test(fname))
+  let program = TS.createProgram(tsFiles, tsConfig.compilerOptions)
+  let emitResult = program.emit()
+  if (emitResult.emitSkipped) {
+    console.error(emitResult)
+    process.exit(1)
+  }
 
-// Delete all intermediate build files
-FS.unlinkSync(Path.join(modTempDir, 'tsconfig.json'))
-tsFiles.forEach(filePath => {
-  FS.unlinkSync(filePath)
-})
+  // Delete all intermediate build files
+  FS.unlinkSync(Path.join(modTempDir, 'tsconfig.json'))
+  tsFiles.forEach(filePath => {
+    FS.unlinkSync(filePath)
+  })
+}
 
 FS.readdirSync(modTempDir).filter(filename => {
   FSE.moveSync(Path.join(modTempDir, filename), Path.join(args.out, filename), {
