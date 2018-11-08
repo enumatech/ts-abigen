@@ -149,17 +149,17 @@ const indexTSContents = FS.readFileSync(indexTS).toString()
       .replace('// CONTRACT_IMPORT_REPLACE', exportStrings.join('\n') + '\n')
 FS.writeFileSync(indexTS, indexTSContents)
 
-// Locate typescript type information required to compile interfaces
-const tsConfig = JSON.parse(FS.readFileSync(Path.join(modTempDir, 'tsconfig.json')).toString())
-// @ts-ignore
-tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: string) => {
-  return [
-    Path.join(path, '@0xproject/typescript-typings/types'),
-    Path.join(path, '@types'),
-  ]
-})).filter((path: string) => FS.existsSync(path))
-
 if (!args.only_ts) {
+  // Locate typescript type information required to compile interfaces
+  const tsConfig = JSON.parse(FS.readFileSync(Path.join(modTempDir, 'tsconfig.json')).toString())
+  // @ts-ignore
+  tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map((path: string) => {
+    return [
+      Path.join(path, '@0xproject/typescript-typings/types'),
+      Path.join(path, '@types'),
+    ]
+  })).filter((path: string) => FS.existsSync(path))
+
   // Compile all typescript files
   const tsFiles = findFilesRecursive(modTempDir).filter(fname => (/\.ts$/).test(fname))
   let program = TS.createProgram(tsFiles, tsConfig.compilerOptions)

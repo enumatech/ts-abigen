@@ -113,16 +113,16 @@ var indexTSContents = FS.readFileSync(indexTS).toString()
     .replace('// CONTRACT_METHODS_REPLACE', contractMethodsStrings.join(''))
     .replace('// CONTRACT_IMPORT_REPLACE', exportStrings.join('\n') + '\n');
 FS.writeFileSync(indexTS, indexTSContents);
-// Locate typescript type information required to compile interfaces
-var tsConfig = JSON.parse(FS.readFileSync(Path.join(modTempDir, 'tsconfig.json')).toString());
-// @ts-ignore
-tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map(function (path) {
-    return [
-        Path.join(path, '@0xproject/typescript-typings/types'),
-        Path.join(path, '@types'),
-    ];
-})).filter(function (path) { return FS.existsSync(path); });
 if (!args.only_ts) {
+    // Locate typescript type information required to compile interfaces
+    var tsConfig = JSON.parse(FS.readFileSync(Path.join(modTempDir, 'tsconfig.json')).toString());
+    // @ts-ignore
+    tsConfig.typeRoots = [].concat.apply([], require.resolve.paths('').map(function (path) {
+        return [
+            Path.join(path, '@0xproject/typescript-typings/types'),
+            Path.join(path, '@types'),
+        ];
+    })).filter(function (path) { return FS.existsSync(path); });
     // Compile all typescript files
     var tsFiles = findFilesRecursive(modTempDir).filter(function (fname) { return (/\.ts$/).test(fname); });
     var program = TS.createProgram(tsFiles, tsConfig.compilerOptions);
