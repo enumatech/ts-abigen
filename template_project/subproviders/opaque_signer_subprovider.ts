@@ -86,6 +86,10 @@ export class OpaqueSignerSubprovider extends Subprovider {
         return signer
     }
 
+    public hasSigner(address:string): boolean {
+        return this._signers.has(address)
+    }
+
     public async signTransactionAsync(txParams: PartialTxParams): Promise<string> {
         txParams.chainId = this._chainID
         const signer = this.getSigner(txParams.from)
